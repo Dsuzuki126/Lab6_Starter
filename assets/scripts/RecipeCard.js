@@ -1,10 +1,11 @@
 class RecipeCard extends HTMLElement {
   constructor() {
     // Part 1 Expose - TODO
-
+    super();
     // You'll want to attach the shadow DOM here
+    this.attachShadow({mode: "open"});
   }
-
+  
   set data(data) {
     // This is the CSS that you'll use for your recipe cards
     const styleElem = document.createElement('style');
@@ -100,6 +101,166 @@ class RecipeCard extends HTMLElement {
     // created in the constructor()
 
     // Part 1 Expose - TODO
+    this.shadowRoot.appendChild(card);
+    this.shadowRoot.appendChild(styleElem);
+    
+    
+
+    
+    let image = document.createElement("img");
+
+    let title = document.createElement("p");
+    let insideTitle = document.createElement("a");
+    title.appendChild(insideTitle);
+    
+    insideTitle.setAttribute("href", getUrl(data));
+    
+    
+    title.setAttribute("class", "title");
+    
+    let organization;
+    if (getOrganization(data)==null) {
+      organization = searchForKey(searchForKey(data, "author"), "name");
+    }
+    else {
+      organization = getOrganization(data);
+    }
+    let organizationElem = document.createElement("p");
+    organizationElem.setAttribute("class", "organization");
+    organizationElem.innerHTML=organization;
+    
+    let timeElem = document.createElement("time")
+    let timeToMake;
+
+    let ingredientElem = document.createElement("p");
+    ingredientElem.setAttribute("class", "ingredients");
+    let ingredients;
+
+    let ratingElem = document.createElement("div");
+    ratingElem.setAttribute("class", "rating");
+    let insideRatingElem = document.createElement("span");
+    ratingElem.appendChild(insideRatingElem);
+    let ratingImage = document.createElement("img");
+    ratingElem.appendChild(ratingImage);
+    
+    // console.log(data)
+    if ( data["@graph"] == null || data["@graph"].length <= 1 ) {
+      
+      if (searchForKey(data, "aggregateRating") == null) {
+        insideRatingElem.innerHTML = "No Reviews";
+        ratingImage.setAttribute("src" ,"assets\\images\\icons\\0-star.svg" )
+      }
+      else {
+        let value = searchForKey(searchForKey(data,"aggregateRating"), "ratingValue");
+        insideRatingElem.innerHTML =  searchForKey(searchForKey(data,"aggregateRating"), "ratingValue");
+        
+        let spanElem = document.createElement("span");
+        spanElem.innerHTML = "(" + searchForKey(searchForKey(data,"aggregateRating"), "ratingCount") + ")";
+        ratingElem.appendChild(spanElem);
+        
+        if (Math.round(value) >= 4 && Math.round(value) < 5 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\4-star.svg" )
+        }
+        if (Math.round(value) ==5  ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\5-star.svg" )
+        }
+        if (Math.round(value) >= 3 && Math.round(value) < 4 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\3-star.svg" )
+        }
+        if (Math.round(value) >= 2 && Math.round(value) < 3 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\2-star.svg" )
+        }
+        if (Math.round(value) >= 1 && Math.round(value) < 2 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\1-star.svg" )
+        }
+        
+      }
+
+      timeToMake = searchForKey(data,"totalTime");
+      if (timeToMake == null) {
+        
+      }
+      else {
+        timeToMake = convertTime(searchForKey(data,"totalTime"));
+        timeElem.innerHTML=timeToMake;
+      }
+
+      
+
+      ingredients = searchForKey(data,"recipeIngredient");
+      ingredientElem.innerHTML = createIngredientList(ingredients);
+
+      insideTitle.innerHTML = data["name"];
+
+      if (searchForKey(searchForKey(data,"image"), "url")  == null ) {
+        image.setAttribute("src",searchForKey(data,"image"));
+      }
+      else {
+        
+        image.setAttribute("src",searchForKey(searchForKey(data,"image"), "url") )
+      }
+      
+      
+    }
+    else {
+      let info = data["@graph"][data["@graph"].length - 1];
+      
+      if (searchForKey(info, "aggregateRating") == null) {
+        insideRatingElem.innerHTML = "No Reviews";
+        ratingImage.setAttribute("src" ,"assets\\images\\icons\\0-star.svg" )
+      }
+      else {
+        insideRatingElem.innerHTML = searchForKey(searchForKey(info,"aggregateRating"), "ratingValue");
+        let spanElem = document.createElement("span");
+        spanElem.innerHTML = "(" + searchForKey(searchForKey(info,"aggregateRating"), "ratingCount") + ")";
+        ratingElem.appendChild(spanElem);
+
+        let value = searchForKey(searchForKey(info,"aggregateRating"), "ratingValue");
+        if (Math.round(value) >= 4 && Math.round(value) < 5 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\4-star.svg" )
+        }
+        if (Math.round(value) ==5  ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\5-star.svg" )
+        }
+        if (Math.round(value) >= 3 && Math.round(value) < 4 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\3-star.svg" )
+        }
+        if (Math.round(value) >= 2 && Math.round(value)< 3 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\2-star.svg" )
+        }
+        if (Math.round(value) >= 1 && Math.round(value) < 2 ) {
+          ratingImage.setAttribute("src","assets\\images\\icons\\1-star.svg" )
+        }
+      }
+      
+      
+      timeToMake = searchForKey(info,"totalTime");
+      if (timeToMake == null) {
+        
+      }
+      else {
+        timeToMake = convertTime(searchForKey(info,"totalTime"));
+        timeElem.innerHTML=timeToMake;
+      }
+
+      ingredients = searchForKey(info,"recipeIngredient");
+      ingredientElem.innerHTML = createIngredientList(ingredients);
+
+      insideTitle.innerHTML= searchForKey(info, "name");
+
+      image.setAttribute("src", searchForKey(info, "image")[0] )
+      
+    }
+    card.appendChild(image);
+    card.appendChild(title);
+    card.appendChild(organizationElem);
+    card.appendChild(timeElem);
+    card.appendChild(ratingElem);
+    card.appendChild(ingredientElem);
+
+
+
+ 
   }
 }
 
